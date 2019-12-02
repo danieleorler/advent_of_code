@@ -27,9 +27,9 @@ fn main() {
             let mut program = int_code.to_vec();
             program[1] = i;
             program[2] = j;
-            let candidate = execute_program(&mut program);
             // producer
             pool.execute(move|| {
+                let candidate = execute_program(&mut program);
                 tx.send((candidate, i, j)).unwrap();
             });
         }
