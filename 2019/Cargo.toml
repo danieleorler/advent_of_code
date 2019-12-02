@@ -1,0 +1,8 @@
+[package]
+name = "aoc2019"
+version = "0.1.0"
+authors = ["Daniele Orler <daniele.orler@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+threadpool = "1.7.1"
