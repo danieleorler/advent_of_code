@@ -1,9 +1,5 @@
-pub type Value = i64;
-pub type Address = usize;
-
 pub struct IntProgram {
-    pub mem: Vec<i64>,
-    pub pointer: usize
+    pub mem: Vec<i64>
 }
 
 #[derive(Debug)]
@@ -100,7 +96,7 @@ fn to_statement(raw: i64) -> Statement {
 
 impl IntProgram {
     pub fn new(bytecode: Vec<i64>) -> Self {
-        return IntProgram { mem: bytecode, pointer: 0 };
+        return IntProgram { mem: bytecode };
     }
 
     pub fn get_param(&self, i: usize, mode: &Mode) -> i64 {
