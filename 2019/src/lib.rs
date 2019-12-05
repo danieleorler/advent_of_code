@@ -1,5 +1,7 @@
 use std::cmp::{min, max};
 
+pub mod intcode;
+
 #[derive(Copy, Clone, Debug)]
 pub struct Point {
     pub x: i64,

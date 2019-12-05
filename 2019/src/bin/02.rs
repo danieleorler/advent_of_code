@@ -3,17 +3,16 @@ use std::io::prelude::*;
 use std::sync::mpsc;
 use threadpool::ThreadPool;
 use std::time::Instant;
+use aoc2019::intcode::{parse_code, IntProgram};
 
 fn main() {
-    let mut line = String::new();
+    let mut code = String::new();
     let stdin = io::stdin();
-    stdin.lock().read_line(&mut line).unwrap();
+    stdin.lock().read_line(&mut code).unwrap();
 
-    let int_code: Vec<usize> = line.split(",")
-        .map(|x| x.parse::<usize>().unwrap())
-        .collect();
+    let mut program = IntProgram::new(parse_code(&code));
 
-    println!("solution one: {}", execute_program(&mut int_code.to_vec()));
+    println!("solution one: {}", program.execute());
 
     let n_workers = 4;
     let pool = ThreadPool::new(n_workers);
@@ -21,15 +20,16 @@ fn main() {
     let now = Instant::now();
 
     let (tx, rx) = mpsc::channel();
+    let bytecode = parse_code(&code);
     for i in 0..100 {
         for j in 0..100 {
             let tx = tx.clone();
-            let mut program = int_code.to_vec();
-            program[1] = i;
-            program[2] = j;
+            let mut program = IntProgram::new(bytecode.clone());
+            program.mem[1] = i;
+            program.mem[2] = j;
             // producer
             pool.execute(move|| {
-                let candidate = execute_program(&mut program);
+                let candidate = program.execute();
                 tx.send((candidate, i, j)).unwrap();
             });
         }
@@ -45,24 +45,4 @@ fn main() {
 
     let took = now.elapsed();
     println!("took {}.{}", took.as_secs(), took.subsec_nanos());
-}
-
-fn execute_program(int_code: &mut [usize]) -> usize {
-    let mut i = 0;
-    let mut op_code = int_code[0];
-    while op_code != 99 {
-        let dest = int_code[i+3];
-        let a = int_code[i+2];
-        let b = int_code[i+1];
-        if op_code == 1 {
-            int_code[dest] = int_code[a] + int_code[b];
-        }
-        if op_code == 2 {
-            int_code[dest] = int_code[a] * int_code[b];
-        }
-        i = i + 4;
-        op_code = int_code[i];
-    }
-
-    int_code[0]
 }
