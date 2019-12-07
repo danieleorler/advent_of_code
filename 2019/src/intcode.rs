@@ -1,7 +1,9 @@
 pub struct IntProgram {
     pub mem: Vec<i64>,
     pub input: Vec<i64>,
-    pub output: Vec<i64>
+    pub output: Vec<i64>,
+    pub pointer: usize,
+    pub status: Status
 }
 
 #[derive(Debug)]
@@ -13,13 +15,22 @@ pub enum Instruction {
     JUMPT,
     JUMPF,
     LT,
-    EQ
+    EQ,
+    EXIT
 }
 
 #[derive(Debug)]
 pub enum Mode {
     POSITION,
     IMMEDIATE
+}
+
+#[derive(Debug)]
+pub enum Status {
+    READY,
+    EXECUTING,
+    WAITINGFORINPUT,
+    DONE
 }
 
 #[derive(Debug)]
@@ -46,6 +57,7 @@ fn to_instruction(i: i64) -> Instruction {
         6 => Instruction::JUMPF,
         7 => Instruction::LT,
         8 => Instruction::EQ,
+        99 => Instruction::EXIT,
         _ => panic!("{} is not a valid Instruction", i)
     }
 }
@@ -101,7 +113,9 @@ impl IntProgram {
         return IntProgram { 
             mem: bytecode,
             input: Vec::new(),
-            output: Vec::new()
+            output: Vec::new(),
+            pointer: 0,
+            status: Status::READY
          };
     }
 
@@ -112,70 +126,85 @@ impl IntProgram {
         }
     }
 
+    pub fn is_running(&self) -> bool {
+        match self.status {
+            Status::EXECUTING => true,
+            _ => false
+        }
+    }
+
     pub fn execute(&mut self) {
-        let mut i = 0;
-        let mut op_code = self.mem[0];
-        while op_code != 99 {
+        let mut op_code = self.mem[self.pointer];
+        self.status = Status::EXECUTING;
+        while self.is_running() {
             let stm = to_statement(op_code);
             match stm.inst {
                 Instruction::ADD => {
-                    let dest = self.mem[i+3] as usize;
-                    let first = Self::get_param(self, i+1, &stm.first);
-                    let second = Self::get_param(self, i+2, &stm.second);
+                    let dest = self.mem[self.pointer+3] as usize;
+                    let first = Self::get_param(self, self.pointer+1, &stm.first);
+                    let second = Self::get_param(self, self.pointer+2, &stm.second);
                     self.mem[dest] = first + second;
-                    i += 4;
+                    self.pointer += 4;
                 },
                 Instruction::MULT => {
-                    let dest = self.mem[i+3] as usize;
-                    let first = Self::get_param(self, i+1, &stm.first);
-                    let second = Self::get_param(self, i+2, &stm.second);
+                    let dest = self.mem[self.pointer+3] as usize;
+                    let first = Self::get_param(self, self.pointer+1, &stm.first);
+                    let second = Self::get_param(self, self.pointer+2, &stm.second);
                     self.mem[dest] = first * second;
-                    i += 4;
+                    self.pointer += 4;
                 },
                 Instruction::SAVE => {
-                    let dest = self.mem[i+1] as usize;
-                    self.mem[dest] = self.input.pop().unwrap();
-                    i += 2;
+                    if self.input.len() < 1 {
+                        self.status = Status::WAITINGFORINPUT;
+                    } else {
+                        let dest = self.mem[self.pointer+1] as usize;
+                        self.mem[dest] = self.input.pop().unwrap();
+                        self.pointer += 2;
+                    }
+                    
                 },
                 Instruction::PRINT => {
-                    let out = Self::get_param(self, i+1, &stm.first);
+                    let out = Self::get_param(self, self.pointer+1, &stm.first);
                     self.output.push(out);
-                    i += 2;
+                    self.pointer += 2;
                 },
                 Instruction::JUMPT => {
-                    if Self::get_param(self, i+1, &stm.first) != 0 {
-                        i = Self::get_param(self, i+2, &stm.second) as usize;
+                    if Self::get_param(self, self.pointer+1, &stm.first) != 0 {
+                        self.pointer = Self::get_param(self, self.pointer+2, &stm.second) as usize;
                     } else {
-                        i += 3;
+                        self.pointer += 3;
                     }
                 },
                 Instruction::JUMPF => {
-                    if Self::get_param(self, i+1, &stm.first) == 0 {
-                        i = Self::get_param(self, i+2, &stm.second) as usize;
+                    if Self::get_param(self, self.pointer+1, &stm.first) == 0 {
+                        self.pointer = Self::get_param(self, self.pointer+2, &stm.second) as usize;
                     } else {
-                        i += 3;
+                        self.pointer += 3;
                     }
                 },
                 Instruction::LT => {
-                    let dest = self.mem[i+3] as usize;
-                    if Self::get_param(self, i+1, &stm.first) < Self::get_param(self, i+2, &stm.second) {
+                    let dest = self.mem[self.pointer+3] as usize;
+                    if Self::get_param(self, self.pointer+1, &stm.first) < Self::get_param(self, self.pointer+2, &stm.second) {
                         self.mem[dest] = 1;
                     } else {
                         self.mem[dest] = 0;
                     }
-                    i += 4;
+                    self.pointer += 4;
                 },
                 Instruction::EQ => {
-                    let dest = self.mem[i+3] as usize;
-                    if Self::get_param(self, i+1, &stm.first) == Self::get_param(self, i+2, &stm.second) {
+                    let dest = self.mem[self.pointer+3] as usize;
+                    if Self::get_param(self, self.pointer+1, &stm.first) == Self::get_param(self, self.pointer+2, &stm.second) {
                         self.mem[dest] = 1;
                     } else {
                         self.mem[dest] = 0;
                     }
-                    i += 4;
+                    self.pointer += 4;
+                },
+                Instruction::EXIT => {
+                    self.status = Status::DONE;
                 }
             }
-            op_code = self.mem[i];
+            op_code = self.mem[self.pointer];
         }
     }
 }
