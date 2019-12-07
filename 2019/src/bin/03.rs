@@ -1,6 +1,6 @@
 use std::io;
 use std::io::prelude::*;
-use aoc2019::{Point, Line, manhattan_distance};
+use aoc2019::geometry::{Point, Line, manhattan_distance};
 
 fn main() {
     let stdin = io::stdin();

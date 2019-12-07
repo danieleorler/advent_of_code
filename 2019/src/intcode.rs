@@ -1,5 +1,7 @@
 pub struct IntProgram {
-    pub mem: Vec<i64>
+    pub mem: Vec<i64>,
+    pub input: Vec<i64>,
+    pub output: Vec<i64>
 }
 
 #[derive(Debug)]
@@ -96,7 +98,11 @@ fn to_statement(raw: i64) -> Statement {
 
 impl IntProgram {
     pub fn new(bytecode: Vec<i64>) -> Self {
-        return IntProgram { mem: bytecode };
+        return IntProgram { 
+            mem: bytecode,
+            input: Vec::new(),
+            output: Vec::new()
+         };
     }
 
     pub fn get_param(&self, i: usize, mode: &Mode) -> i64 {
@@ -106,7 +112,7 @@ impl IntProgram {
         }
     }
 
-    pub fn execute(&mut self) -> i64 {
+    pub fn execute(&mut self) {
         let mut i = 0;
         let mut op_code = self.mem[0];
         while op_code != 99 {
@@ -128,11 +134,12 @@ impl IntProgram {
                 },
                 Instruction::SAVE => {
                     let dest = self.mem[i+1] as usize;
-                    self.mem[dest] = 5;
+                    self.mem[dest] = self.input.pop().unwrap();
                     i += 2;
                 },
                 Instruction::PRINT => {
-                    println!("{}", Self::get_param(self, i+1, &stm.first));
+                    let out = Self::get_param(self, i+1, &stm.first);
+                    self.output.push(out);
                     i += 2;
                 },
                 Instruction::JUMPT => {
@@ -170,7 +177,5 @@ impl IntProgram {
             }
             op_code = self.mem[i];
         }
-    
-        self.mem[0]
     }
 }
