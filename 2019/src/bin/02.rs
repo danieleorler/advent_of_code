@@ -15,10 +15,10 @@ fn main() {
 
 fn solution_one(code: &String, a: i64, b: i64) -> i64 {
     let mut program = IntProgram::new(parse_code(&code));
-    program.mem[1] = a;
-    program.mem[2] = b;
+    program.mem.insert(1, a);
+    program.mem.insert(2, b);
     program.execute();
-    return program.mem[0];
+    return *program.mem.get(&0).unwrap();
 }
 
 fn solution_two(code: &String) -> Option<i64> {
@@ -26,10 +26,10 @@ fn solution_two(code: &String) -> Option<i64> {
     for i in 0..100 {
         for j in 0..100 {
             let mut program = IntProgram::new(bytecode.clone());
-            program.mem[1] = i;
-            program.mem[2] = j;
+            program.mem.insert(1, i);
+            program.mem.insert(2, j);
             program.execute();
-            if program.mem[0] == 19690720 {
+            if *program.mem.get(&0).unwrap() == 19690720 {
                 return Some(100 * i + j);
             }
         }
