@@ -17,4 +17,4 @@ pub fn read_line_from_file(file_name: String) -> io::Result<String> {
     let reader = BufReader::new(file);
 
     return reader.lines().next().unwrap();
-} 
+}
