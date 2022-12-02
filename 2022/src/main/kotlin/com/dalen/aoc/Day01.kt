@@ -1,12 +1,12 @@
 package com.dalen.aoc
 
+import com.dalen.aoc.Utils.getLines
+
 class Day01 {
     fun process(): List<Int> {
         val calories = mutableListOf<Int>()
         var sum = 0
-        this::class.java.classLoader.getResourceAsStream("01.input")
-            .bufferedReader()
-            .readLines()
+        getLines("01.input")
             .forEach {
                 if (it.isBlank()) {
                     calories.add(sum)
