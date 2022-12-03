@@ -6,7 +6,7 @@ class Day01 {
     fun process(): List<Int> {
         val calories = mutableListOf<Int>()
         var sum = 0
-        getLines("01.input")
+        getLines("01")
             .forEach {
                 if (it.isBlank()) {
                     calories.add(sum)

@@ -36,7 +36,7 @@ enum class Shape(private val letters: List<Char>, val points: Int, private val w
 class Day02 {
 
     fun solve1(): Int {
-        return getLines("02.input")
+        return getLines("02")
             .map { listOf(it[0], it[2]) }
             .map { listOf(Shape.fromLetter(it[0]), Shape.fromLetter(it[1])) }
             .sumOf { it[1].vs(it[0]) + it[1].points }
